@@ -46,3 +46,6 @@ stringr::str_glue("The tensor has {nrow} rows, ", "{ncol} columns ",
                   ncol = length(Y) / nangles,
                   nstr = max(phi$slice),
                   rem = length(Y) / nangles)
+
+theta <- read_tsv("~/Downloads/sparsemat_direction_vectors.txt", 
+                  col_names = FALSE)

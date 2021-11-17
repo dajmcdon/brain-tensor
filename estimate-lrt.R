@@ -3,9 +3,12 @@ big_lrt <- function(Xunfold, y, theta, dict, p,
                     rhoinit = 1, maxit = 10, eps = 1e-6,
                     rhomin = 1e-6, rhomax = 1e6) {
   
-  Dmat <- acos(crossprod(theta)) # theta should be unit norm vectors
+  Dmat <- tcrossprod(theta) # theta should be unit norm vectors
+  Dmat[Dmat > 1] <- 1
+  Dmat <- acos(Dmat)
+  n <- length(y)
   y <- matrix(y, nrow = nrow(theta))
-  X <- dense_sp_mult(dict, Xunfold, p)
+  X <- dense_sp_mult(dict, Xunfold, n, p)
   nd <- nrow(Dmat)
   
   big_lm <- function(rhoinit, returnall = FALSE) {
@@ -15,7 +18,7 @@ big_lrt <- function(Xunfold, y, theta, dict, p,
     ytilde <- Sighalf %*% y
     dim(ytilde) <- c(length(ytilde), 1)
     SigDict <- Sighalf %*% dict
-    xtilde <- dense_sp_mult(SigDict, Xunfold, p)
+    xtilde <- dense_sp_mult(SigDict, Xunfold, n, p)
     fit <- bigGlm(xtilde, ytilde, lower.limits = 0)
     bhat <- coef(fit)
     if (!returnall) return(bhat)
@@ -37,7 +40,7 @@ big_lrt <- function(Xunfold, y, theta, dict, p,
     bhat <- big_lm(rhoinit)
     resids <- y - drop(X %*% bhat[-1]) - bhat[1]
     Scatter <- tcrossprod(resids)
-    rho <- optimise(negll, interval = c(rhomin, rhomax), tol = tol)$minimum
+    rho <- optimise(negll, interval = c(rhomin, rhomax), tol = eps)$minimum
     if (abs(rho - rhoinit) < eps) break
     rhoinit <- rho
   }
