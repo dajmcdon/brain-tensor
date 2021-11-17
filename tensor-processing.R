@@ -44,7 +44,7 @@ refold <- function(mat, ncols) {
 
 # Now we use this for all A_x1_Phi multiplications
 # Xunfold is Phi stacked wide with some extra info
-dense_sp_mult <- function(A, Xunfold, dims) {
+dense_sp_mult <- function(A, Xunfold, ncol_out) {
   # returns AX where X is sparse and A is dense, but avoids 0-dense columns
   # requires the output from unfold()
   assertthat::assert_that(ncol(A) == nrow(Xunfold$Xdense), 
@@ -60,7 +60,7 @@ dense_sp_mult <- function(A, Xunfold, dims) {
                      x = AX, 
                      dims = c(out_row, out_col))
   AX <- drop0(AX)
-  refold(AX, dims[2]) # stack tensor vertically rather than horizontally
+  refold(AX, ncol_out) # stack tensor vertically rather than horizontally
 }
 
 
