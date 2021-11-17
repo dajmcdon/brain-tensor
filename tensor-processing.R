@@ -7,12 +7,12 @@ unfold <- function(ijk, val, dims, mode = 1) {
   
   newdims <- c(dims[mode], prod(dims[-mode]))
   
-  i <- ijk[,mode,drop = TRUE]
+  i <- ijk[ ,mode, drop = TRUE]
   # useful if more than 3 dimensions, useless here, just need first dim
   J <- cumprod(dims[-mode])
   J <- c(1, J[-length(J)])
   ik <- ijk[,-mode,drop = FALSE]
-  j <- 1 + (ik - 1) %*% J
+  j <- drop(1 + (ik - 1) %*% J)
   
   Xwide <- sparseMatrix(i = i, j = j, x = val, dims = newdims)
   dense_cols <- which(diff(Xwide@p) > 0) # find cols without 0
