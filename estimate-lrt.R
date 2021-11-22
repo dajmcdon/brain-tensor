@@ -1,11 +1,15 @@
-library(glmnet)
+require(glmnet)
+require(tidyverse)
 big_lrt <- function(Xunfold, y, theta, dict, p, 
                     rhoinit = 1, maxit = 10, eps = 1e-6,
-                    rhomin = 1e-6, rhomax = 1e6) {
-  
-  Dmat <- tcrossprod(theta) # theta should be unit norm vectors
-  Dmat[Dmat > 1] <- 1
+                    rhomin = 1e-6, rhomax = 1e6
+                    ) {
+  stopifnot(rhoinit >= rhomin, rhoinit <= rhomax)
+  stopifnot(rhomin > 0, is.finite(rhomax))
+  Dmat <- tcrossprod(theta / sqrt(rowSums(theta^2))) 
+  # theta should be unit norm vectors, we make sure
   Dmat <- acos(Dmat)
+  diag(Dmat) <- 0 # bad numerics here, this is the best fix I can think of
   n <- length(y)
   y <- matrix(y, nrow = nrow(theta))
   X <- dense_sp_mult(dict, Xunfold, n, p)
@@ -23,12 +27,12 @@ big_lrt <- function(Xunfold, y, theta, dict, p,
     bhat <- coef(fit)
     if (!returnall) return(bhat)
     else return(
-      list(bhat = bhat, resids = ytilde - xtilde %*% bhat[-1] - bhat[1])
+      list(bhat = bhat, resids = drop(ytilde - xtilde %*% bhat[-1] - bhat[1]))
     )
   }
   negll <- function(rho) {
     Sinv <- solve(exp(-Dmat / rho))
-    tr <- sum(t(Sinv) * Scatter)
+    tr <- sum(Sinv * Scatter)
     logdet <- determinant(Sinv)$modulus * ncol(resids)
     ll <- tr - logdet
     attributes(ll) <- NULL
@@ -36,15 +40,15 @@ big_lrt <- function(Xunfold, y, theta, dict, p,
   }
    
   for (iter in 1:maxit) {
-    print(iter)
+    print(str_glue("On iteration {iter}, rho is {rhoinit}.\n"))
     bhat <- big_lm(rhoinit)
     resids <- y - drop(X %*% bhat[-1]) - bhat[1]
-    Scatter <- tcrossprod(resids)
+    sighat <- sqrt(mean(resids^2))
+    Scatter <- tcrossprod(resids / sighat) 
     rho <- optimise(negll, interval = c(rhomin, rhomax), tol = eps)$minimum
     if (abs(rho - rhoinit) < eps) break
     rhoinit <- rho
   }
-  
   
   null_model <- big_lm(rhomin, TRUE)
   sig_null <- sqrt(mean(null_model$resids^2))

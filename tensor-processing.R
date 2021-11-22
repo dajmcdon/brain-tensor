@@ -28,7 +28,7 @@ refold <- function(mat, orig_j, nrows, ncols) {
   n <- nrow(mat)
   p <- max(orig_j)
   assertthat::assert_that(
-    n * p <= nrows * ncols,
+    as.double(n) * as.double(p) <= as.double(nrows) * as.double(ncols),
     msg = "input matrix data is too big for output size.")
   assertthat::assert_that(
     nrows %% n == 0,

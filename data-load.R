@@ -20,8 +20,8 @@ phi <- read_tsv("~/Downloads/sparsemat_phi_subs_vals.txt",
 # has 129241 rows, 148647 cols, and 25900 slices
 
 Dmat <- scan("~/Downloads/sparsemat_DictSig.txt")
-Dmat <- matrix(Dmat, nrow = nangles, byrow = TRUE) #  "rowise"
-Y <- scan("~/Downloads/sparsemat_demeanedSignal.txt") # (seemingly "rowwise")
+Dmat <- matrix(Dmat, nrow = nangles, byrow = TRUE) #  "!! rowise"
+Y <- scan("~/Downloads/sparsemat_demeanedSignal.txt") # "rowwise"
 
 nvoxels <- length(Y) / nangles
 
@@ -31,13 +31,9 @@ nvoxels <- length(Y) / nangles
 testthat::expect_gte(ncol(Dmat),  max(phi$row))
 testthat::expect_lte(max(phi$column), nvoxels)
 
-matplot(matrix(Y[c(
-  outer(0:(nangles - 1) * nvoxels + 1, 0:24, "+")
-)], nangles), ty = "l", ylab = "", main =  "Am I somewhat periodic?")
-matplot(Dmat[,1:100], ty = "l", xlab = "angles", main = "Strong pattern?")
 
 # make Y contain: all angles then all voxels (angles vary fastest)
-Y <- c(matrix(Y, nrow = nangles, byrow = TRUE))
+Y <- c(matrix(Y, nrow = nangles, byrow = TRUE)) # !! rowwise
 
 stringr::str_glue("The tensor has {nrow} rows, ", "{ncol} columns ",
                   "and {nstr} streamlines.\n", "The image has {nangles} angles ",
@@ -49,3 +45,9 @@ stringr::str_glue("The tensor has {nrow} rows, ", "{ncol} columns ",
 
 theta <- read_tsv("~/Downloads/sparsemat_direction_vectors.txt", 
                   col_names = FALSE)
+
+saveRDS(Dmat, here::here("..", "data", "dictionary.rds"))
+saveRDS(Y, here::here("..", "data", "y-vector.rds"))
+saveRDS(as.matrix(theta), here::here("..", "data", "theta-coords.rds"))
+saveRDS(phi, here::here("..", "data", "phi-tensor.rds"))
+
