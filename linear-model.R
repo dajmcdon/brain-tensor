@@ -1,5 +1,6 @@
 library(here)
 library(tidyverse)
+library(Matrix)
 source("estimate-lrt.R")
 source("tensor-processing.R")
 
